@@ -15,7 +15,7 @@ function AppContextProvider({ children }) {
         const url = process.env.REACT_APP_BASE_URL + `/auth/getUserDetails`;
         const response = await fetch(url, {
             method: "GET",
-            headers: {
+            headers: { 
                 "Content-Type": "application/json",
                 "auth-token": localStorage.getItem('token')
             },

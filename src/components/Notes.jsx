@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import EditModal from './EditModal';
 import DeleteModal from './DeleteModal';
 import NoteComp from './NoteComp';
+import Loader from './Loader';
 
 const Notes = () => {
 
@@ -14,15 +15,17 @@ const Notes = () => {
 
   const [id, setId] = useState(null);
   const [deleteModal, setDeleteModal] = useState(false);
+  const [notesLoading, setNotesLoading] = useState(false);
   const [updateNote, setUpdateNote] = useState({
     title: "",
     description: "",
     tag: ""
   });
 
+
   const fetchAllNotes = async () => {
     try {
-      
+      setNotesLoading(true);
       const url = process.env.REACT_APP_BASE_URL + '/getAllNotes';
 
       const response = await fetch(url, {
@@ -36,13 +39,15 @@ const Notes = () => {
       const responseData = await response.json();
 
       if(responseData.success) {
+        setNotesLoading(false);
         setNotes(responseData.data.notes);
       }
       else if(responseData.message === "Invalid token") {
+        setNotesLoading(false);
         setIsLoggedIn(false);
         navigate('/login');
       }
-
+      setNotesLoading(false);
     } catch (error) {
       console.log(error);
       Toast.error("Cannot fetch notes, please try again");
@@ -104,7 +109,7 @@ const Notes = () => {
     <>
 
       {
-        deleteModal ? (
+        notesLoading ? (<Loader />) : (deleteModal ? (
           <DeleteModal setDeleteModal={setDeleteModal} deleteHandler={deleteHandler} id={id} />
         ) : (
           showEditModal ? (
@@ -122,8 +127,8 @@ const Notes = () => {
                             <div className='w-10/12 mx-auto grid mt-10 grid-cols-2 max-tablet:grid-cols-3 max-md:grid-cols-2 max-sm:gap-x-4 max-phone:grid-cols-1 gap-x-5 gap-y-8'>
                               {
                                 notes.map((note) => (
-                                  <NoteComp key={note._id} note={note} handleDelete={handleDelete} editHandler={editHandler} />
-                                ))
+                                  <NoteComp  key={note._id} note={note} handleDelete={handleDelete} editHandler={editHandler} />
+                                )) 
                               }
                             </div>
                           )
@@ -131,7 +136,7 @@ const Notes = () => {
                     
                 </section>
               )
-        )
+        ))
       }
       
     </>

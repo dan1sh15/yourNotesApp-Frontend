@@ -43,7 +43,7 @@ const LoginPage = () => {
         });
 
         const responseData = await response.json();
-        if(responseData.success) {
+        if(responseData.success) { 
           setLoading(false);
           Toast.success(responseData.message);
           localStorage.setItem('token', responseData.token);
