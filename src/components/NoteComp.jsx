@@ -41,7 +41,7 @@ const NoteComp = ( {note, editHandler, handleDelete} ) => {
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
-      <Box sx={style} className='flex flex-col gap-y-4 rounded-xl bg-white border-none max-w-[400px] max-phone:w-[80vw] p-7 max-md:p-5 outline-none'>
+      <Box sx={style} className='flex flex-col gap-y-5 rounded-xl bg-white border-none max-phone:w-[80vw] w-[30%] p-7 max-md:p-5 outline-none max-tablet:w-[40%] max-sm:w-[60%]'>
       <p className='text-2xl max-md:text-xl text-center font-bold'>{note.title}</p>
         <p className='text-lg max-phone:px-2 max-phone:py-1 max-phone:top-[-0.75rem] max-md:text-sm absolute right-2 p-2 rounded-lg text-white top-[-1.15rem] z-10 bg-[#7a65ed]'>{note.tag.length === 0 ? "General" : note.tag}</p>
         <p className='text-lg bg-[#f2f0ff] rounded-lg max-md:p-2 max-md:text-xs p-3 break-words text-slate-700'>{note?.description}</p>
