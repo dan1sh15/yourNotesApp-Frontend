@@ -10,6 +10,7 @@ import Button from './Button';
 import { AppContext } from '../Context/AppContext';
 import Toast from "react-hot-toast";
 import Loader from './Loader';
+import OtpInput from 'react-otp-input';
 
 const SignUp = () => {
 
@@ -19,6 +20,8 @@ const SignUp = () => {
         password: "",
         confirmPassword: "",
     });
+    const [otp, setOtp] = useState("");
+    const [showOtpModal, setShowOtpModal] = useState(false);
 
     const { setUserData, setIsLoggedIn, setLoading, loading } = useContext(AppContext);
     const navigate = useNavigate();
@@ -36,37 +39,96 @@ const SignUp = () => {
     async function submitHandler(event) {
         event.preventDefault();
         setLoading(true);
-        const url = process.env.REACT_APP_BASE_URL + '/auth/signup';
-
+        
+        const url = process.env.REACT_APP_BASE_URL + '/auth/send-otp';
         const response = await fetch(url, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "application/json"
             },
-            body: JSON.stringify({...formData}),
+            body: JSON.stringify({
+                email: formData.email
+            }),
         });
 
-        const responseData = await response.json(); 
+        const responseData = await response.json();
 
         if(responseData.success) {
             setLoading(false);
             Toast.success(responseData.message);
-            localStorage.setItem('token', responseData.token);
-            setUserData(responseData.data);
-            setIsLoggedIn(true);
-            navigate('/');
+            setShowOtpModal(true);
         } else {
             setLoading(false);
             Toast.error(responseData.message);
         }
     };
 
+    const resendOtp = async () => {
+        setLoading(true);
+        const url = process.env.REACT_APP_BASE_URL + '/auth/send-otp';
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            email: formData.email
+          }),
+        });
+
+        const responseData = await response.json();
+
+        if(responseData.success) {
+          setLoading(false);
+          Toast.success(responseData.message);
+        } else {
+          setLoading(false);
+          Toast.error(responseData.message);
+        }
+    };
+
+    const otpSubmitHandler = async (e) => {
+        e.preventDefault();
+
+        setLoading(true);
+        formData.otp = otp;
+        const url = process.env.REACT_APP_BASE_URL + '/auth/signup';
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({...formData})
+        });
+
+        const responseData = await response.json();
+        if(responseData.success) {
+            setShowOtpModal(false);
+            setLoading(false);
+            Toast.success(responseData.message);
+            localStorage.setItem('token', responseData.token);
+            setFormData({
+                name: "",
+                email: "",
+                password: "",
+                confirmPassword: "",
+            });
+
+            setUserData(responseData.data);
+            setIsLoggedIn(true);
+            navigate("/");
+        } else {
+            setLoading(false);
+            Toast.error(responseData.message);
+        }
+    }
+
   return (
     <>
         {
             loading ? (<Loader />) : (
                 <div className='h-[80vh] max-xl:w-11/12 max-lg:w-full w-10/12 mx-auto flex items-center transition-all duration-300 ease-in-out justify-center' >
-                    <div className='h-[90%] max-md:h-[80%] max-sm:w-[70%] max-phone:w-[80%] max-smallPhone:w-[90%] max-md:w-[90%] max-lg:w-[80%] w-[60%] flex flex-row-reverse'>
+                    <div className={`h-[90%] max-md:h-[80%] max-sm:w-[70%] max-phone:w-[80%] max-smallPhone:w-[90%] max-md:w-[90%] max-lg:w-[80%] w-[60%] flex flex-row-reverse ${showOtpModal && 'opacity-[0.25]'}` }>
                         <div className='w-[50%] max-sm:w-full max-sm:rounded-l-3xl max-phone:px-7 max-phone:py-5 max-smallPhone:px-5 max-smallPhone:py-3 max-[200px]:p-3 bg-white rounded-r-3xl max-md:p-7 p-10 h-full flex flex-col items-center justify-center gap-y-5'>
                             <h1 className='text-3xl max-md:text-2xl text-center uppercase font-bold'>Signup</h1>
                             <p className='text-center  max-phone:text-xs max-md:text-sm'>Get started with <HighlightText text={"yourNotes"} /> App</p>
@@ -134,7 +196,32 @@ const SignUp = () => {
                             </div>
                         </div>
                     </div>
+
+                    <div className={`w-full h-full flex items-center justify-center absolute ${showOtpModal ? 'scale-[1]' : 'scale-[0]'} transition-all duration-300 ease-linear`}>.
+                        <form onSubmit={otpSubmitHandler} className='w-[40%] max-tablet:w-[60%] flex flex-col gap-y-5 bg-white p-7 max-tablet:gap-y-3 max-tablet:p-5 rounded-lg shadow-xl max-phone:w-[80%]'>
+                            <h1 className='text-center text-3xl text-black font-semibold max-tablet:text-2xl max-phone:text-xl'>OTP Verification</h1>
+                            <p className='text-center text-lg max-tablet:text-[1rem] max-phone:text-sm' >Enter OTP code send to your email</p>
+
+                            <div className='mx-auto text-2xl max-tablet:text-xl max-phone:text-lg'>
+                                <OtpInput
+                                    inputStyle='otp-input'
+                                    value={otp}
+                                    onChange={setOtp}
+                                    numInputs={6}
+                                    renderSeparator={<span>-</span>}
+                                    renderInput={(props) => <input {...props} />}
+                                />
+                            </div>
+
+                            <div className='flex flex-col gap-y-2 items-center text-base max-tablet:text-sm max-phone:text-xs'>
+                                <p className='text-center'>Didn't received the OTP code?</p>
+                                <button onClick={resendOtp} className='text-center mx-auto text-[#2991cb] cursor-pointer font-semibold w-fit'><HighlightText text="Resend Code" /></button>
+                            </div>
+
+                            <Button btnText={"Verify & Proceed"} />
+                        </form>
                     </div>
+                </div>
             )
         }
     </>
